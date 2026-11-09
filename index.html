@@ -1,9 +1,8 @@
-<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
 <title>ゼミ日程 希望調査</title>
 <meta name="claude:viewport-fit-sides" content="cover">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Zen+Kaku+Gothic+New:wght@400;500;700&display=swap">
 <style>
-/* Layout: 画面上部に A〜E の切り替え、その下に選択中の人の3か月カレンダー、最後にLINE送信欄 */
+/* Layout: 上部に A〜E（名前）の切り替えと名前設定、選択中の人の3か月カレンダー、スクショ画像、LINE送信欄 */
 :root {
   --bg: #f4f6f5;
   --surface: #ffffff;
@@ -62,24 +61,41 @@ body {
 h1 { font-size: 22px; line-height: 1.3; margin: 0; font-weight: 700; text-wrap: balance; }
 .lead { margin: 4px 0 0; color: var(--muted); font-size: 14px; }
 
-.picker { display: grid; grid-template-columns: repeat(5, 1fr); gap: 8px; }
+.picker { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 8px; }
 .picker button {
   font: inherit;
   font-weight: 700;
-  font-size: 20px;
-  min-height: 56px;
+  min-height: 60px;
   border: 1.5px solid var(--line);
   background: var(--surface);
   color: var(--fg);
   border-radius: 8px;
   cursor: pointer;
-  padding: 0;
-  display: flex; flex-direction: column; align-items: center; justify-content: center; line-height: 1.1;
+  padding: 4px;
+  min-width: 0;
+  display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px; line-height: 1.15;
 }
-.picker button small { font-size: 11px; font-weight: 500; color: var(--muted); margin-top: 3px; }
+.picker .nm {
+  display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical;
+  overflow: hidden; word-break: break-all; text-align: center; max-width: 100%;
+  font-size: 13px;
+}
+.picker .nm.n1 { font-size: 22px; }
+.picker .nm.n2 { font-size: 18px; }
+.picker .sub { font-size: 11px; font-weight: 500; color: var(--muted); }
 .picker button[aria-pressed="true"] { background: var(--accent); border-color: var(--accent); color: var(--accent-fg); }
-.picker button[aria-pressed="true"] small { color: var(--accent-fg); opacity: .85; }
-button:focus-visible, a:focus-visible, textarea:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
+.picker button[aria-pressed="true"] .sub { color: var(--accent-fg); opacity: .85; }
+button:focus-visible, a:focus-visible, textarea:focus-visible, input:focus-visible, summary:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
+
+details.names { background: var(--surface); border: 1px solid var(--line); border-radius: 8px; padding: 0 16px; }
+details.names summary { cursor: pointer; padding: 12px 0; font-weight: 700; font-size: 14px; }
+.names-body { display: flex; flex-direction: column; gap: 8px; padding-bottom: 14px; }
+.name-row { display: grid; grid-template-columns: 28px minmax(0, 1fr); gap: 10px; align-items: center; }
+.name-row label { font-weight: 700; color: var(--muted); text-align: center; }
+.name-row input {
+  font: inherit; font-size: 16px; min-width: 0; width: 100%;
+  color: var(--fg); background: var(--bg); border: 1px solid var(--line); border-radius: 8px; padding: 8px 12px;
+}
 
 .summary { background: var(--surface); border: 1px solid var(--line); border-radius: 8px; padding: 14px 16px; }
 .summary h2 { margin: 0 0 8px; font-size: 16px; font-weight: 700; }
@@ -92,6 +108,7 @@ button:focus-visible, a:focus-visible, textarea:focus-visible { outline: 3px sol
 .swatch { width: 14px; height: 14px; border-radius: 4px; display: inline-block; }
 .swatch.on { background: var(--accent); }
 .swatch.off { background: var(--off-bg); border: 1px solid var(--line); }
+.legend .mini { font-size: 10px; font-weight: 500; opacity: .75; width: 14px; text-align: center; }
 
 .months { display: flex; flex-direction: column; gap: 16px; }
 .month { background: var(--surface); border: 1px solid var(--line); border-radius: 8px; padding: 12px 10px 10px; }
@@ -99,13 +116,14 @@ button:focus-visible, a:focus-visible, textarea:focus-visible { outline: 3px sol
 .grid { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 3px; }
 .dow { text-align: center; font-size: 11px; color: var(--muted); padding-bottom: 2px; }
 .cell {
-  aspect-ratio: 1 / 1.05;
+  aspect-ratio: 1 / 1.2;
   border-radius: 6px;
   display: flex; flex-direction: column; align-items: center; justify-content: center;
   font-size: 14px; font-variant-numeric: tabular-nums; line-height: 1.15;
   min-width: 0;
 }
 .cell .tag { font-size: 10px; font-weight: 700; margin-top: 1px; }
+.cell .others { font-size: 9px; font-weight: 500; opacity: .7; margin-top: 1px; white-space: nowrap; line-height: 1.2; min-height: 1.2em; }
 .cell.blank { visibility: hidden; }
 .cell.on { background: var(--accent); color: var(--accent-fg); font-weight: 700; }
 .cell.off { background: var(--off-bg); color: var(--muted); }
@@ -125,6 +143,7 @@ textarea#msg {
   display: flex; align-items: center; justify-content: center; text-align: center;
 }
 .btn.line { background: var(--line-green); border-color: var(--line-green); color: #ffffff; }
+.btn.small { min-height: 40px; font-size: 14px; align-self: flex-start; padding: 0 16px; }
 .note { margin: 0; font-size: 12px; color: var(--muted); }
 #status { min-height: 1.4em; margin: 0; font-size: 13px; color: var(--accent); }
 @media (prefers-reduced-motion: no-preference) {
@@ -135,10 +154,19 @@ textarea#msg {
 <div class="wrap">
   <header>
     <h1>ゼミ日程 希望調査</h1>
-    <p class="lead">自分の文字を選ぶと、ゼミの日程がカレンダーで確認できます。</p>
+    <p class="lead">自分の名前を選ぶと、ゼミの日程がカレンダーで確認できます。</p>
   </header>
 
   <div class="picker" id="picker" role="group" aria-label="希望する日程を選択"></div>
+
+  <details class="names">
+    <summary>名前を設定する</summary>
+    <div class="names-body">
+      <div id="nameRows"></div>
+      <p class="note">入力した名前は、この端末にだけ保存されます。空にするとA〜Eに戻ります。</p>
+      <button class="btn small" id="nameReset" type="button">すべて元に戻す</button>
+    </div>
+  </details>
 
   <section class="summary" aria-live="polite">
     <h2><span id="who"></span>のゼミあり <span id="count"></span></h2>
@@ -148,6 +176,7 @@ textarea#msg {
   <p class="legend">
     <span><i class="swatch on"></i>ゼミあり</span>
     <span><i class="swatch off"></i>ゼミなし（候補日のうち対象外）</span>
+    <span><b class="mini">A</b>小さな文字：ほかの人のゼミあり（名前の頭文字）</span>
   </p>
 
   <div class="months" id="months"></div>
@@ -190,7 +219,29 @@ textarea#msg {
   };
   var MONTHS = [[2026, 10], [2026, 11], [2027, 0]];
   var DOW = ["日", "月", "火", "水", "木", "金", "土"];
+  var STORE_KEY = "zemi-nittei-names";
   var current = "A";
+  var custom = {}; // A〜Eに付けた名前（空なら未設定）
+
+  function loadNames() {
+    try {
+      var raw = localStorage.getItem(STORE_KEY);
+      if (raw) {
+        var o = JSON.parse(raw);
+        NAMES.forEach(function (n) {
+          if (o && typeof o[n] === "string") custom[n] = o[n].slice(0, 8);
+        });
+      }
+    } catch (e) {}
+  }
+  function saveNames() {
+    try { localStorage.setItem(STORE_KEY, JSON.stringify(custom)); } catch (e) {}
+  }
+  // 表示名（未設定ならA〜E）
+  function nm(n) { return (custom[n] || "").trim() || n; }
+  // 「Aさん」または設定した名前
+  function full(n) { return nm(n) === n ? n + "さん" : nm(n); }
+  function initial(n) { return Array.from(nm(n))[0].toUpperCase(); }
 
   function key(y, m, d) {
     return y + "-" + String(m + 1).padStart(2, "0") + "-" + String(d).padStart(2, "0");
@@ -203,17 +254,74 @@ textarea#msg {
   function datesFor(n) {
     return Object.keys(DATA).sort().filter(function (k) { return DATA[k].indexOf(n) !== -1; });
   }
+  function othersOf(k) {
+    return NAMES.filter(function (n) { return n !== current && DATA[k].indexOf(n) !== -1; })
+      .map(initial).join("");
+  }
 
+  // ---- 切り替えボタン ----
   var picker = document.getElementById("picker");
   NAMES.forEach(function (n) {
     var b = document.createElement("button");
     b.type = "button";
     b.id = "pick-" + n;
-    b.innerHTML = n + "<small>さん</small>";
     b.addEventListener("click", function () { select(n); });
     picker.appendChild(b);
   });
 
+  function updatePicker() {
+    NAMES.forEach(function (n) {
+      var b = document.getElementById("pick-" + n);
+      var len = Array.from(nm(n)).length;
+      b.innerHTML = "";
+      var a = document.createElement("span");
+      a.className = "nm " + (len === 1 ? "n1" : len === 2 ? "n2" : "n3");
+      a.textContent = nm(n);
+      var s = document.createElement("span");
+      s.className = "sub";
+      s.textContent = nm(n) === n ? "さん" : n;
+      b.appendChild(a);
+      b.appendChild(s);
+      b.setAttribute("aria-pressed", n === current ? "true" : "false");
+      b.setAttribute("aria-label", full(n));
+    });
+  }
+
+  // ---- 名前の入力欄 ----
+  var rows = document.getElementById("nameRows");
+  rows.style.display = "flex";
+  rows.style.flexDirection = "column";
+  rows.style.gap = "8px";
+  NAMES.forEach(function (n) {
+    var row = document.createElement("div");
+    row.className = "name-row";
+    var lb = document.createElement("label");
+    lb.htmlFor = "name-" + n;
+    lb.textContent = n;
+    var inp = document.createElement("input");
+    inp.type = "text";
+    inp.id = "name-" + n;
+    inp.maxLength = 8;
+    inp.placeholder = n;
+    inp.autocomplete = "off";
+    inp.value = custom[n] || "";
+    inp.addEventListener("input", function () {
+      custom[n] = inp.value;
+      saveNames();
+      select(current);
+    });
+    row.appendChild(lb);
+    row.appendChild(inp);
+    rows.appendChild(row);
+  });
+  document.getElementById("nameReset").addEventListener("click", function () {
+    custom = {};
+    saveNames();
+    NAMES.forEach(function (n) { document.getElementById("name-" + n).value = ""; });
+    select(current);
+  });
+
+  // ---- カレンダー ----
   function renderMonths() {
     var root = document.getElementById("months");
     root.innerHTML = "";
@@ -256,8 +364,7 @@ textarea#msg {
     var cells = document.querySelectorAll(".cell[data-date]");
     cells.forEach(function (cell) {
       var k = cell.dataset.date;
-      var old = cell.querySelector(".tag");
-      if (old) old.remove();
+      cell.querySelectorAll(".tag, .others").forEach(function (x) { x.remove(); });
       cell.classList.remove("on", "off");
       if (DATA[k]) {
         var has = DATA[k].indexOf(current) !== -1;
@@ -266,23 +373,25 @@ textarea#msg {
         t.className = "tag";
         t.textContent = has ? "あり" : "なし";
         cell.appendChild(t);
+        var o = document.createElement("span");
+        o.className = "others";
+        o.textContent = othersOf(k);
+        cell.appendChild(o);
       }
     });
   }
 
   function message() {
     var ds = datesFor(current).map(label);
-    return "ゼミ日程の希望は「" + current + "さん」の日程です。\n\n" +
+    return "ゼミ日程の希望は「" + full(current) + "」の日程です。\n\n" +
       "ゼミあり（" + ds.length + "日）\n" + ds.join("\n");
   }
 
   function select(n) {
     current = n;
-    NAMES.forEach(function (x) {
-      document.getElementById("pick-" + x).setAttribute("aria-pressed", x === n ? "true" : "false");
-    });
+    updatePicker();
     var ds = datesFor(n);
-    document.getElementById("who").textContent = n + "さん";
+    document.getElementById("who").textContent = full(n);
     document.getElementById("count").textContent = "（" + ds.length + "日）";
     var chips = document.getElementById("chips");
     chips.innerHTML = "";
@@ -315,7 +424,7 @@ textarea#msg {
   // 描画して、必要だった高さを返す
   function drawShot(ctx, W, H) {
     var C = { bg: "#ffffff", card: "#f4f6f5", fg: "#1c2b27", muted: "#64766f", accent: "#0e6b5c", off: "#e3e8e6" };
-    var pad = 48, cellW = (W - pad * 2) / 7, cellH = 84, y = pad;
+    var pad = 48, cellW = (W - pad * 2) / 7, cellH = 100, y = pad;
     ctx.fillStyle = C.bg;
     ctx.fillRect(0, 0, W, H);
     ctx.textBaseline = "middle";
@@ -323,7 +432,7 @@ textarea#msg {
 
     ctx.font = "700 60px " + SHOT_FONT;
     ctx.fillStyle = C.fg;
-    ctx.fillText("ゼミ日程　" + current + "さん", pad, y + 30);
+    ctx.fillText("ゼミ日程　" + full(current), pad, y + 30);
     y += 84;
 
     var ds = datesFor(current).map(label);
@@ -388,9 +497,16 @@ textarea#msg {
           ctx.fill();
           ctx.fillStyle = has ? "#ffffff" : C.muted;
           ctx.font = "700 34px " + SHOT_FONT;
-          ctx.fillText(String(d), cx, ty + cellH * 0.4);
-          ctx.font = "700 22px " + SHOT_FONT;
-          ctx.fillText(has ? "あり" : "なし", cx, ty + cellH * 0.74);
+          ctx.fillText(String(d), cx, ty + cellH * 0.3);
+          ctx.font = "700 21px " + SHOT_FONT;
+          ctx.fillText(has ? "あり" : "なし", cx, ty + cellH * 0.57);
+          var oth = othersOf(k);
+          if (oth) {
+            ctx.globalAlpha = 0.7;
+            ctx.font = "500 21px " + SHOT_FONT;
+            ctx.fillText(oth, cx, ty + cellH * 0.8);
+            ctx.globalAlpha = 1;
+          }
         } else {
           ctx.fillStyle = C.fg;
           ctx.font = "500 32px " + SHOT_FONT;
@@ -404,7 +520,8 @@ textarea#msg {
     ctx.font = "500 28px " + SHOT_FONT;
     ctx.fillStyle = C.muted;
     ctx.fillText("緑＝ゼミあり　グレー＝ゼミなし（候補日のうち対象外）", pad, y + 16);
-    y += 32 + pad;
+    ctx.fillText("小さな文字＝ほかの人のゼミあり（名前の頭文字）", pad, y + 60);
+    y += 76 + pad;
     return y;
   }
 
@@ -433,9 +550,10 @@ textarea#msg {
       }
     }
     if (document.fonts && document.fonts.load) {
+      var sample = "ゼミ日程あり" + NAMES.map(nm).join("");
       Promise.all([
-        document.fonts.load('700 36px "Zen Kaku Gothic New"', "ゼミ日程あり"),
-        document.fonts.load('500 32px "Zen Kaku Gothic New"', "ゼミ日程あり")
+        document.fonts.load('700 36px "Zen Kaku Gothic New"', sample),
+        document.fonts.load('500 32px "Zen Kaku Gothic New"', sample)
       ]).then(run, run);
     } else {
       run();
@@ -467,9 +585,12 @@ textarea#msg {
     }
   });
 
+  loadNames();
+  NAMES.forEach(function (n) {
+    var inp = document.getElementById("name-" + n);
+    if (inp) inp.value = custom[n] || "";
+  });
   renderMonths();
   select(current);
 })();
 </script>
-
-</body></html>
